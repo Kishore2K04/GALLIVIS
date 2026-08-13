@@ -1,0 +1,37 @@
+# Virtual Environment
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment Variables
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Model Files
+*.h5
+*.keras
+*.pt
+*.pth
+
+# Data
+data/raw/
+data/processed/
+
+# Temporary files
+temp/
+tmp/
