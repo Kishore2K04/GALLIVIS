@@ -1,1 +1,3 @@
 dataset_name,source,data_type,classes,patients,images,license,notes
+UIdataGB,Public research dataset,ultrasound,"Gallstones;Cholecystitis;Polyps;Other",221,1326,See source terms,"Useful for ultrasound pipeline development; does not provide Cholesterol/Pigment/Mixed composition labels"
+Gallstone_Composition_Studies,Published research studies,composition,"Cholesterol;Mixed;Pigment",200,,Research publication,"Composition determined through chemical analysis; candidate source for ground-truth understanding, not yet linked to ultrasound images"
