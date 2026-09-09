@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 
-from app.config.settings import MODEL_DIR
+from app.config.settings import API_KEY, MODEL_DIR
 from app.models.schemas import HealthResponse, PredictionResponse
 from app.services.cnn_inference import load_model, predict_from_bytes
 from app.services.health_service import get_health_status
@@ -68,7 +69,21 @@ def health_check():
     response_model=PredictionResponse,
     tags=["Prediction"],
 )
-async def predict_ultrasound(file: UploadFile = File(...)):
+@app.post(
+    "/predict/ultrasound",
+    response_model=PredictionResponse,
+    tags=["Prediction"],
+)
+async def predict_ultrasound(
+    file: UploadFile = File(...),
+    x_api_key: str = Header(...),
+):
+
+    if x_api_key != API_KEY:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key.",
+        )
 
     if file.content_type not in ("image/jpeg", "image/png"):
         raise HTTPException(

@@ -1,4 +1,9 @@
+import requests
 import streamlit as st
+
+
+API_BASE_URL = "http://127.0.0.1:8000"
+API_KEY = "gallivis-dev-key"
 
 
 st.set_page_config(
@@ -23,10 +28,6 @@ st.markdown(
 
 st.divider()
 
-st.info(
-    "AI prediction modules will be integrated in upcoming sprints."
-)
-
 st.header("Patient Information")
 
 col1, col2 = st.columns(2)
@@ -42,8 +43,76 @@ st.selectbox(
     ["Select", "Male", "Female", "Other"],
 )
 
-st.header("Current Status")
+st.divider()
 
-st.write(
-    "GALLIVIS application foundation is running successfully."
+st.header("Ultrasound Image")
+
+uploaded_file = st.file_uploader(
+    "Upload a preoperative ultrasound image (JPEG or PNG)",
+    type=["jpg", "jpeg", "png"],
+)
+
+if uploaded_file is not None:
+
+    st.image(
+        uploaded_file,
+        caption="Uploaded ultrasound image",
+        width=400,
+    )
+
+    if st.button("Analyze Ultrasound Image"):
+
+        with st.spinner("Analyzing image..."):
+
+            try:
+                response = requests.post(
+                    f"{API_BASE_URL}/predict/ultrasound",
+                    headers={"x-api-key": API_KEY},
+                    files={
+                        "file": (
+                            uploaded_file.name,
+                            uploaded_file.getvalue(),
+                            uploaded_file.type,
+                        )
+                    },
+                    timeout=30,
+                )
+            except requests.exceptions.ConnectionError:
+                st.error(
+                    "Could not reach the GALLIVIS API. "
+                    "Make sure it is running (see run.py)."
+                )
+                response = None
+
+        if response is not None:
+
+            if response.status_code == 200:
+
+                result = response.json()
+
+                st.success(f"Predicted stone type: **{result['prediction']}**")
+                st.metric(
+                    "Model Confidence",
+                    f"{result['confidence'] * 100:.1f}%",
+                )
+
+                st.subheader("Full Probability Breakdown")
+                st.bar_chart(result["probabilities"])
+
+                st.warning(result["disclaimer"])
+
+            elif response.status_code == 503:
+                st.warning(response.json()["detail"])
+
+            else:
+                st.error(
+                    f"Prediction failed ({response.status_code}): "
+                    f"{response.json().get('detail', 'Unknown error')}"
+                )
+
+st.divider()
+
+st.caption(
+    "GALLIVIS provides AI-assisted clinical decision support only. "
+    "It does not replace a qualified doctor's diagnosis."
 )

@@ -11,6 +11,8 @@ from app.services.model_checkpoint import save_model
 
 client = TestClient(app)
 
+VALID_HEADERS = {"x-api-key": "gallivis-dev-key"}
+
 
 def _make_dummy_jpeg_bytes() -> bytes:
     image = Image.new("RGB", (224, 224), color=(120, 120, 120))
@@ -19,10 +21,32 @@ def _make_dummy_jpeg_bytes() -> bytes:
     return buffer.getvalue()
 
 
+def test_predict_rejects_missing_api_key():
+
+    response = client.post(
+        "/predict/ultrasound",
+        files={"file": ("scan.jpg", _make_dummy_jpeg_bytes(), "image/jpeg")},
+    )
+
+    assert response.status_code in (401, 422)
+
+
+def test_predict_rejects_wrong_api_key():
+
+    response = client.post(
+        "/predict/ultrasound",
+        headers={"x-api-key": "wrong-key"},
+        files={"file": ("scan.jpg", _make_dummy_jpeg_bytes(), "image/jpeg")},
+    )
+
+    assert response.status_code == 401
+
+
 def test_predict_rejects_non_image_upload():
 
     response = client.post(
         "/predict/ultrasound",
+        headers=VALID_HEADERS,
         files={"file": ("notes.txt", b"not an image", "text/plain")},
     )
 
@@ -39,6 +63,7 @@ def test_predict_returns_503_when_no_checkpoint_exists(tmp_path, monkeypatch):
 
     response = client.post(
         "/predict/ultrasound",
+        headers=VALID_HEADERS,
         files={"file": ("scan.jpg", _make_dummy_jpeg_bytes(), "image/jpeg")},
     )
 
@@ -63,6 +88,7 @@ def test_predict_returns_valid_schema_with_untrained_checkpoint(tmp_path, monkey
 
     response = client.post(
         "/predict/ultrasound",
+        headers=VALID_HEADERS,
         files={"file": ("scan.jpg", _make_dummy_jpeg_bytes(), "image/jpeg")},
     )
 
