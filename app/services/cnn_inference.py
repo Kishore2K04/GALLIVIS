@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import io
+import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
@@ -73,6 +75,67 @@ def predict(
 
     image_tensor = preprocess_for_inference(
         image_path
+    ).to(device)
+
+    logits = model(image_tensor)
+
+    probabilities = F.softmax(
+        logits,
+        dim=1,
+    )[0]
+
+    predicted_index = int(
+        torch.argmax(probabilities).item()
+    )
+
+    confidence = float(
+        probabilities[predicted_index].item()
+    )
+
+    return {
+        "prediction": CLASS_NAMES[predicted_index],
+        "confidence": confidence,
+        "probabilities": {
+            CLASS_NAMES[index]: float(
+                probabilities[index].item()
+            )
+            for index in range(len(CLASS_NAMES))
+        },
+    }
+
+
+def preprocess_bytes_for_inference(
+    image_bytes: bytes,
+) -> torch.Tensor:
+
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+    image = image.resize(
+        IMAGE_SIZE,
+        Image.Resampling.LANCZOS,
+    )
+
+    image_tensor = torch.from_numpy(
+        np.array(image)
+    ).float() / 255.0
+
+    image_tensor = image_tensor.permute(2, 0, 1)
+
+    # Add batch dimension.
+    image_tensor = image_tensor.unsqueeze(0)
+
+    return image_tensor
+
+
+@torch.no_grad()
+def predict_from_bytes(
+    model: GallivisCNN,
+    image_bytes: bytes,
+    device: torch.device,
+) -> dict:
+
+    image_tensor = preprocess_bytes_for_inference(
+        image_bytes
     ).to(device)
 
     logits = model(image_tensor)
