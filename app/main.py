@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 
+from app.utils.case_id import generate_case_id
 from app.config.settings import API_KEY, MODEL_DIR
 from app.models.schemas import HealthResponse, PredictionResponse
 from app.services.cnn_inference import load_model, predict_from_bytes
@@ -98,6 +99,7 @@ async def predict_ultrasound(
     result = predict_from_bytes(model, image_bytes, device)
 
     return PredictionResponse(
+        case_id=generate_case_id(),
         prediction=result["prediction"],
         confidence=result["confidence"],
         probabilities=result["probabilities"],

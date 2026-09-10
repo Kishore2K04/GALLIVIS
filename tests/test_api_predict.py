@@ -96,6 +96,7 @@ def test_predict_returns_valid_schema_with_untrained_checkpoint(tmp_path, monkey
 
     body = response.json()
 
+    assert body["case_id"].startswith("GLV-")
     assert body["prediction"] in ("Cholesterol", "Pigment", "Mixed")
     assert 0.0 <= body["confidence"] <= 1.0
     assert set(body["probabilities"].keys()) == {

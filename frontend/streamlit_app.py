@@ -33,7 +33,7 @@ st.header("Patient Information")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.text_input("Patient ID")
+    st.text_input("Name")
 
 with col2:
     st.number_input("Age", min_value=0, max_value=120, value=30)
@@ -41,6 +41,11 @@ with col2:
 st.selectbox(
     "Gender",
     ["Select", "Male", "Female", "Other"],
+)
+
+st.caption(
+    "No Patient ID needed — GALLIVIS is open to anyone. "
+    "You'll receive a unique Case ID after your result."
 )
 
 st.divider()
@@ -89,6 +94,12 @@ if uploaded_file is not None:
             if response.status_code == 200:
 
                 result = response.json()
+
+                st.info(
+                    f"**Case ID:** `{result['case_id']}` — "
+                    "save this. If you have surgery later, you can "
+                    "return and use this ID to help confirm this result."
+                )
 
                 st.success(f"Predicted stone type: **{result['prediction']}**")
                 st.metric(

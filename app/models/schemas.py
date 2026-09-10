@@ -8,6 +8,7 @@ class HealthResponse(BaseModel):
 
 
 class PredictionResponse(BaseModel):
+    case_id: str
     prediction: str
     confidence: float
     probabilities: dict[str, float]
